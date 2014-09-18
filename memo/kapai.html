@@ -1,0 +1,248 @@
+<html>
+<head>
+<title>Memory Game</title>
+<style>
+  form{
+       width:330px;
+	    margin:20px;
+       background-color:pink;
+        padding:20px;
+   }
+    input{
+              text-align:right;	
+			  }
+	</style>
+<script>
+     var ctx;
+     var firstpick=true;
+	 var firstcard;//保存定义第一次选择有关信息
+	 var secondcard;
+	 var frontbgcolor="rgb(251,215,73)";//牌面背景颜色
+	 var polycolor="rgb(254,11,0)";//多边形颜色值
+	 var backcolor="rgb(128,0,128)";//牌背面颜色
+	 var tablecolor="rgb(255,255,255)";//桌面颜色
+	 var cardrad=30;//多边型半径
+	 var deck=[];//一副牌数组sy
+	 var firstsx=30;//第一张牌位置
+	 var firstsy=50;
+	 var margin=30;//牌间距
+	 var cardwidth=4*cardrad;
+	 var cardheight=4*cardrad;
+	 var matched;//
+	 var starttime;//计算消耗时
+	 var px;//鼠标坐标全局变量
+	 var py;
+	 
+	 
+function Card(sx,sy,swidth,sheight,info){
+         this.sx=sx;
+         this.sy=sy;
+         this.swidth=swidth;
+         this.sheight=sheight;
+         this.info=info;//多边形边数
+         this.draw=drawback;
+}
+
+function makedeck(){
+         var i;
+         var acard;//保存一对牌中第一张变量
+         var bcard;
+         var cx=firstsx;//保存第一个位置
+         var cy=firstsy;
+         for(i=3;i<9;i++){//生成3角形到8边形牌
+         acard=new Card(cx,cy,cardwidth,cardheight,i);//创建一张牌          
+         bcard=new Card(cx,cy+cardheight+margin,cardwidth,cardheight,i);//同样信息，第二张，位于第一张下方
+		   deck.push(acard);
+           deck.push(bcard);
+           cx=cx+cardwidth+margin;//下一个多边型，由此循环
+           acard.draw();
+           bcard.draw();
+           }		   
+        shuffle();//洗牌		   
+}
+
+function shuffle(){
+         var i;
+         var k;
+         var holder;
+         var dl=deck.length;//保存牌数目变量	 
+         var n;//交换数索引
+         for (n=0;n<3*dl;n++){//洗牌次数，为牌数*3
+           i=Math.floor(Math.random()*dl);//得到随机牌
+           k=Math.floor(Math.random()*dl);//再得到一随机牌		    
+           holder=deck[i].info;     //经典交换算法		   
+           deck[i].info=deck[k].info;
+           deck[k].info=holder;		   
+	       }
+}
+
+function Polycard(sx,sy,rad,n){
+         this.sx=sx;
+         this.sy=sy;
+         this.rad=rad;
+         this.draw=drawpoly;             //如何绘制
+         this.n=n;                 //边数
+         this.angle=(2*Math.PI)/n;  //角度
+}
+
+function drawpoly(){//画正面
+         ctx.fillStyle=frontbgcolor;
+         ctx.fillRect(this.sx-2*this.rad,this.sy-2*this.rad,4*this.rad,4*this.rad);//以牌面中心作图
+         ctx.beginPath();
+         ctx.fillStyle=polycolor;
+         var i;
+		 var rad=this.rad;
+		 ctx.moveTo(this.sx+rad*Math.cos(-.5*this.angle),this.sy+rad*Math.sin(-.5*this.angle));//上移第一个点
+		 for(i=1;i<this.n;i++){
+		 ctx.lineTo(this.sx+rad*Math.cos((i-.5)*this.angle),this.sy+rad*Math.sin((i-.5)*this.angle));
+		 }
+		 ctx.fill();//填充路径，完成多边形绘制
+}
+
+function drawback(){
+         ctx.fillStyle=backcolor;
+         ctx.fillRect(this.sx,this.sy,this.swidth,this.sheight);
+}
+function mouseMove(ev){ //得到鼠标左边函数
+      ev = ev || window.event; 
+var mousePos = mouseCoords(ev);
+
+  px= mousePos.x;
+py= mousePos.y;
+} 
+
+function mouseCoords(ev)
+{
+if(ev.pageX || ev.pageY){
+return {x:ev.pageX, y:ev.pageY};
+}
+return{
+x:ev.clientX + document.body.scrollLeft - document.body.clientLeft,
+y:ev.clientY + document.body.scrollTop - document.body.clientTop
+}; 
+} 
+  document.onmousemove = mouseMove;	
+function choose(ev){
+         var mx=px;
+         var my=py;
+         var pick1;//保存所创建polygon对象引用变量
+         var pick2;		 
+         var i;	  
+         for(i=0;i<deck.length;i++){//循环处理整幅牌
+		 var card=deck[i];//抽出一个牌意引用简化代码		
+		 if(card.sx>=0){  //检查此牌是否标志以删除
+		   document.getElementById('tt').value="GGG";
+		 if
+		 ((mx>card.sx)&&(mx<card.sx+card.swidth)&&(my>card.sy)&&(my<card.sy+card.sheight)){//检查鼠标是否在牌上
+		 
+		       if((firstpick) || (i!=firstcard)) break;   //检查玩家是否再次单击第一张牌，不是或者，第一次点击，跳出循环
+			}
+			}
+			}
+		if(i<deck.length){
+		   if(firstpick){//若di一次点击
+		 
+		     firstcard=i;
+			 firstpick=false;
+			 pick1=new
+			 
+			 Polycard(card.sx+cardwidth*.5,card.sy+cardheight*.5,
+			 cardrad,card.info);//利用这张牌坐标在中心创建多边形
+			 pick1.draw();
+			 }
+			 else{
+			 secondcard=i;//第2张牌
+		     pick2=new
+			 Polycard(card.sx+cardwidth*.5,card.sy+cardheight*.5,
+			 cardrad,card.info);
+			 pick2.draw();
+			 if(deck[secondcard].info==deck[firstcard].info){//检察第二张和第一张是否匹配
+			        matched=true;
+					var nm
+					=1+Number(document.f.count.value);//配对计数加1
+					document.f.count.value=String(nm);
+					if(nm>=.5*deck.length){//是否全部匹配
+                        var now =new Date();
+                        var nt=Number(now.getTime());
+                        var seconds=Math.floor(.5+(nt-starttime)/1000);//计算经过多少秒
+                        document.f.elapsed.value=String(seconds);
+                         }
+                    }
+             else {//不匹配
+                    matched=false;			 
+                   }
+				   firstpick=true;
+				   setTimeout(flipback,1000);//暂停
+			}	   
+        }
+}
+
+function flipback(){
+        if(!matched){//不匹配画背面
+		deck[firstcard].draw();
+		deck[secondcard].draw();
+		}
+        else{//匹配则覆盖
+		   ctx.fillStyle=tablecolor;
+		   ctx.fillRect(deck[secondcard].sx,deck[secondcard].sy
+		   ,deck[secondcard].swidth,deck[secondcard].sheight);
+		   ctx.fillRect(deck[firstcard].sx,deck[firstcard].sy
+		   ,deck[firstcard].swidth,deck[firstcard].sheight);
+		                  deck[secondcard].sx=-1;//设置被移除
+						  deck[firstcard].sx=-1;
+			}			  
+}
+
+
+function init(){
+        ctx=canvas.getContext('2d');
+		canvas1=document.getElementById('canvas');
+		canvas1.addEventListener('click',choose,false);
+		makedeck();//创建牌
+		//document.getElementById('yy').value=String(deck.length);
+		document.f.count.value="0";
+		document.f.elapsed.value=" ";
+		starttime=new Date();
+		starttime=Number(starttime.getTime());
+		shuffle();
+}
+</script>
+</head>
+<body onLoad="init();">
+<canvas id="canvas" width="900" height="400">
+</canvas> 
+<br/>
+Click on two cards to match them!
+<form name="f">
+ Number of matches:<input type="text" name="count" value="0" size="1"/>
+ <br/>
+ Time has passed:<input type="text" name="elapsed" value=" " size="4"/>seconds.
+ <br/>
+ <input id="tt" name="tt" value=""/>
+  <input id="xx" name="xx" value=""/> <input id="yy" name="yy" value=""/>
+</form>
+</body>
+</html> 
+
+
+
+
+
+   
+          			
+		 
+
+
+		  
+		   
+		   
+		   
+		   
+		   
+		   
+		   
+		   
+		   
+		   
+		   
+		   
